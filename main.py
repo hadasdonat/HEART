@@ -1,6 +1,5 @@
 import os
 import pandas as pd
-import classification
 PROCESSED_DATA_PATH = "processed_data_checkpoint.csv"
 SELECTED_FEATURES_PATH = "selected_features.txt"
 
