@@ -1,5 +1,9 @@
+import os
 import pandas as pd
 import classification
+PROCESSED_DATA_PATH = "processed_data_checkpoint.csv"
+SELECTED_FEATURES_PATH = "selected_features.txt"
+
 
 # ======================================================================================
 # Step 1: Selection and structure of the database
@@ -26,7 +30,6 @@ def step_1_load_data():
     print(f"Diseased: {df['target'].sum()}, Healthy: {(df['target']==0).sum()}")
     print(df.head())
     return df
-
 
 
 # ======================================================================================
@@ -122,10 +125,10 @@ def step_3_discretization(df):
     print(df.head(10))
     return df
 
+
 # ======================================================================================
 # Step 4 Logic: NB-SKDR Pairwise Dependency (The "Difference" Method)
 # ======================================================================================
-
 def calculate_pairwise_difference(df, f1, f2, target, p_c):
     """
     Implements Equation (6) and computes the absolute difference 
@@ -214,9 +217,45 @@ def step_4_feature_selection(df):
     
     return paper_features
 
-if __name__ == "__main__":
+
+
+def run_full_pipeline():
+    """Runs steps 1 to 4 and saves the results to disk."""
+    print("Running full pipeline (Steps 1-4)... this might take a moment.")
+    
+    # Step 1: Load
     raw_df = step_1_load_data()
+    # Step 2: Clean
     df_cleaned = step_2_handle_missing_values(raw_df)
+    # Step 3: Discretize
     df_discretized = step_3_discretization(df_cleaned)
+    # Step 4: Feature Selection
     feature_selected = step_4_feature_selection(df_discretized)
-    # classification.step_5_classification_phase(df_discretized, feature_selected)
+
+    # --- SAVE TO DISK ---
+    df_discretized.to_csv(PROCESSED_DATA_PATH, index=False)
+    with open(SELECTED_FEATURES_PATH, "w") as f:
+        f.write(",".join(feature_selected))
+    
+    print("Checkpoint saved! Next time, we will load from files.")
+    return df_discretized, feature_selected
+
+def load_from_checkpoint():
+    """Loads the results of steps 1-4 from disk."""
+    print("Loading data from checkpoint...")
+    df = pd.read_csv(PROCESSED_DATA_PATH)
+    with open(SELECTED_FEATURES_PATH, "r") as f:
+        features = f.read().split(",")
+    return df, features
+
+if __name__ == "__main__":
+    # Check if we already have the processed data
+    if os.path.exists(PROCESSED_DATA_PATH) and os.path.exists(SELECTED_FEATURES_PATH):
+        # Load existing work
+        df_ready, features_ready = load_from_checkpoint()
+    else:
+        # Run everything for the first time
+        df_ready, features_ready = run_full_pipeline()
+
+    print(f"Ready for Step 5 with {len(features_ready)} features.")
+    
