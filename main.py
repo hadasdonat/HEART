@@ -1,5 +1,6 @@
 import os
 import pandas as pd
+import calssification2
 PROCESSED_DATA_PATH = "processed_data_checkpoint.csv"
 SELECTED_FEATURES_PATH = "selected_features.txt"
 
@@ -256,5 +257,4 @@ if __name__ == "__main__":
         # Run everything for the first time
         df_ready, features_ready = run_full_pipeline()
 
-    print(f"Ready for Step 5 with {len(features_ready)} features.")
-    
+    calssification2.run_all_comparisons(df_ready, features_ready)
